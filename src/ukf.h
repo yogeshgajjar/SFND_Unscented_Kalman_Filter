@@ -60,6 +60,11 @@ class UKF {
   // predicted sigma points matrix
   Eigen::MatrixXd Xsig_pred_;
 
+  Eigen::MatrixXd Xsig_aug_;
+
+  Eigen::MatrixXd x_aug_;
+
+  Eigen::MatrixXd P_aug_;
   // time when the state is true, in us
   long long time_us_;
 
@@ -84,6 +89,10 @@ class UKF {
   // Radar measurement noise standard deviation radius change in m/s
   double std_radrd_ ;
 
+  double mean_a_;
+
+  double mean_yawdd_;
+
   // Weights of sigma points
   Eigen::VectorXd weights_;
 
@@ -95,6 +104,11 @@ class UKF {
 
   // Sigma point spreading parameter
   double lambda_;
+
+  void GenerateSigmaPoints();
+  void AugmentedSigmaPoints();
+  void SigmaPointPrediction(double delta_t);
+  void PredictMeanAndCovariance();
 };
 
 #endif  // UKF_H

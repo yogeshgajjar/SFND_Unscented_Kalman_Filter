@@ -24,13 +24,17 @@ UKF::UKF() {
   
   // initial predicted sigma points in state space
   Xsig_pred_ = MatrixXd(n_x_, 2 * n_aug_ + 1);
-
+  Xsig_aug_ = MatrixXd(n_aug_, 2*n_aug_+1);
+  x_aug_ = MatrixXd(n_aug_);
+  P_aug_ = MatrixXd(n_aug_, n_aug_);
   // Process noise standard deviation longitudinal acceleration in m/s^2
   std_a_ = 30;
 
   // Process noise standard deviation yaw acceleration in rad/s^2
   std_yawdd_ = 30;
 
+  mean_a_ = 0.0;
+  mean_yawdd_ = 0.0;
   /**
    * DO NOT MODIFY measurement noise values below.
    * These are provided by the sensor manufacturer.
@@ -121,3 +125,60 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
    * You can also calculate the radar NIS, if desired.
    */
 }
+
+void UKF::GenerateSigmaPoints() {
+
+  // This function requires x_ and P_ as inputs. 
+  MatrixXd A = P_.llt().matrixL();
+  MatrixXd A_final = sqrt(lambda_ + n_x_) * A;
+  MatrixXd A_mid = A_final;
+  MatrixXd A_last = A_final;
+
+  for(int i=0; i < A_final.cols(); i++) {
+    A_mid.col(i) = x_ + A_final.col(i);
+    A_last.col(i) = x_ - A_final.col(i);
+  }
+
+  // This function returns a Xsig_ matrix. 
+  MatrixXd Xsig_ = MatrixXd(n_x_, 2*n_x_+1);
+  Xsig_ << x_, A_mid, A_last;
+}
+
+void UKF::AugmentedSigmaPoints() {
+  x_aug_.head(5) = x_;
+  x_aug_(5) = mean_a_;
+  x_aug_(6) = mean_yawdd_;
+
+  P_aug_.fill(0.0);
+  P_aug_.topLeftCorner(5,5) = P_;
+  P_aug_(5,5) = std_a_*std_a_;
+  P_aug_(6,6) = std_yawdd_*std_yawdd_;
+
+  MatrixXd L = P_aug_.llt().matrixL();
+
+  // create augmented sigma points
+  Xsig_aug_.col(0)  = x_aug_;
+  for (int i = 0; i< n_aug_; ++i) {
+    Xsig_aug_.col(i+1)       = x_aug_ + sqrt(lambda_+n_aug_) * L.col(i);
+    Xsig_aug_.col(i+1+n_aug_) = x_aug_ - sqrt(lambda_+n_aug_) * L.col(i);
+  }
+}
+
+void UKF::SigmaPointPrediction(double delta_t) {
+  
+  for(int i=0; i < 2*n_aug_+1; i++) {
+    float p_x               = Xsig_aug_(0,i);
+    float p_y               = Xsig_aug_(1,i);    
+    float v                 = Xsig_aug_(2,i);
+    float yaw               = Xsig_aug_(3,i);
+    float yawrate           = Xsig_aug_(4,i);
+    float noise_a           = Xsig_aug_(5,i);
+    float noise_yawrate     = Xsig_aug_(6,i);
+  }
+}
+
+void UKF::PredictMeanAndCovariance() {
+
+}
+
+
