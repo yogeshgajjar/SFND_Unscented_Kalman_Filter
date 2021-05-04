@@ -49,7 +49,7 @@ class UKF {
 
   /**
    * 
-   * Sigma point augmentation for better 
+   * Augment sigma state and covariance matrix
    */
   void AugmentedSigmaPoints();
   void SigmaPointPrediction(double delta_t);
