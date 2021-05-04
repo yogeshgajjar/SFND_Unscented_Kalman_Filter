@@ -27,6 +27,7 @@ UKF::UKF() {
   Xsig_aug_ = MatrixXd(n_aug_, 2*n_aug_+1);
   x_aug_ = MatrixXd(n_aug_);
   P_aug_ = MatrixXd(n_aug_, n_aug_);
+  x_pred_ = VectorXd(n_x_);
   // Process noise standard deviation longitudinal acceleration in m/s^2
   std_a_ = 30;
 
@@ -174,11 +175,46 @@ void UKF::SigmaPointPrediction(double delta_t) {
     float yawrate           = Xsig_aug_(4,i);
     float noise_a           = Xsig_aug_(5,i);
     float noise_yawrate     = Xsig_aug_(6,i);
+
+    if(fabs(yawrate > 0.001)) {
+      double radius = v/yawrate;
+
+      p_x += radius * (sin(yaw + yawrate * delta_t) - sin(yaw)) + 
+                  (0.5 * pow(delta_t, 2) * cos(yaw) * mean_a_);
+      p_y += radius * (cos(yaw) - cos(yaw + yawrate * delta_t)) + 
+                  (0.5 * pow(delta_t, 2) * sin(yaw) * mean_a_);
+      v   += delta_t * mean_a_;
+      yaw += (yawrate * delta_t) + (0.5 * pow(delta_t,2) * mean_yawdd_);
+      yawrate += delta_t * mean_yawdd_;
+
+    }
+
+    else {
+      p_x += (v*cos(yaw)*delta_t) + (0.5 * pow(delta_t, 2) * cos(yaw) * mean_a_);
+      p_y += (v*sin(yaw)*delta_t) + (0.5 * pow(delta_t, 2) * sin(yaw) * mean_a_);
+      v += delta_t * mean_a_;
+      yaw += (yawrate * delta_t) + (0.5 * pow(delta_t,2) * mean_yawdd_);
+      yawrate += delta_t * mean_yawdd_;
+    }
+
+    Xsig_pred_(0,i) = p_x;
+    Xsig_pred_(1,i) = p_y;
+    Xsig_pred_(2,i) = v;
+    Xsig_pred_(3,i) = yaw;
+    Xsig_pred_(4,i) = yawrate;
   }
+
+
 }
 
 void UKF::PredictMeanAndCovariance() {
 
+  // MatrixXd 
+  // predicted mean and the covariance 
+  // x_pred_.fill(0);
+  // for(int i=0; i < 2*n_aug_+1; i++) {
+  //   x_pred_ += weights_[i] * 
+  // }
 }
 
 
