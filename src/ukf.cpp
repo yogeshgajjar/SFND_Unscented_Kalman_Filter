@@ -209,12 +209,22 @@ void UKF::SigmaPointPrediction(double delta_t) {
 
 void UKF::PredictMeanAndCovariance() {
 
-  // MatrixXd 
-  // predicted mean and the covariance 
-  // x_pred_.fill(0);
-  // for(int i=0; i < 2*n_aug_+1; i++) {
-  //   x_pred_ += weights_[i] * 
-  // }
+  // predicted state mean
+  x_pred_.fill(0);
+  for(int i=0; i < 2*n_aug_+1; i++) {
+    x_pred_ += weights_[i] * Xsig_pred_.col(i);
+  }
+
+  
+  // predicted state covariance matrix 
+  for(int i=0; i < 2*n_aug_+1; i++) {
+    VectorXd x_diff = Xsig_pred_.col(i) - x_;
+        // angle normalization
+    while (x_diff(3)> M_PI) x_diff(3)-=2.*M_PI;
+    while (x_diff(3)<-M_PI) x_diff(3)+=2.*M_PI;
+
+    P_ += weights_(i) * x_diff * x_diff.transpose();
+  }
 }
 
 

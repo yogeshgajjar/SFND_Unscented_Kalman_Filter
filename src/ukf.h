@@ -41,7 +41,19 @@ class UKF {
    */
   void UpdateRadar(MeasurementPackage meas_package);
 
+  /**
+   *  Generates the sigma points of the state 
+   * @param 
+   */
+  void GenerateSigmaPoints();
 
+  /**
+   * 
+   * Sigma point augmentation for better 
+   */
+  void AugmentedSigmaPoints();
+  void SigmaPointPrediction(double delta_t);
+  void PredictMeanAndCovariance();
   // initially set to false, set to true in first call of ProcessMeasurement
   bool is_initialized_;
 
@@ -106,11 +118,6 @@ class UKF {
 
   // Sigma point spreading parameter
   double lambda_;
-
-  void GenerateSigmaPoints();
-  void AugmentedSigmaPoints();
-  void SigmaPointPrediction(double delta_t);
-  void PredictMeanAndCovariance();
 };
 
 #endif  // UKF_H
